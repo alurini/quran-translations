@@ -1,0 +1,1 @@
+0ccbe7e975cf4bd63682af2a32a7eaec3722cd8e66475de63d92c364093fd89b  quran_far.json

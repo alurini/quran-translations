@@ -1,0 +1,50 @@
+MIT License
+
+Copyright (c) 2025 Quran JSON Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+IMPORTANT NOTICE REGARDING TRANSLATION TEXTS:
+
+The MIT License above applies exclusively to the software code, scripts,
+tooling, and structural formatting contained in this repository.
+
+The Quran translation texts included in the data/ directory are the
+intellectual property of their respective publishers, primarily the
+King Fahd Complex for the Printing of the Holy Quran, Madinah,
+Kingdom of Saudi Arabia. These texts are reproduced here for
+non-commercial, educational, and technical purposes only.
+
+This is an UNOFFICIAL, INDEPENDENT project with no affiliation to or
+endorsement from the King Fahd Complex. Texts were extracted via
+automated OCR and AI-assisted tools and may contain errors.
+
+The repository maintainers:
+- Make no claim of ownership over any translation text
+- Make no guarantee of accuracy — OCR and digitization errors may exist
+- Bear no responsibility for any errors, omissions, modification, or
+  misuse of the texts by third parties
+- Strongly advise all users to verify any text against the official
+  printed editions issued by the King Fahd Complex before use in
+  any religious, educational, or production context
+
+Users who discover any discrepancy are encouraged to report it via
+GitHub Issues with a reference to the official printed source.

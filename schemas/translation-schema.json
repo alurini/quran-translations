@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/YOUR_USERNAME/quran-json/schemas/translation-schema.json",
+  "title": "Quran Translation",
+  "description": "Schema for a single Quran translation file from the King Fahd Complex",
+  "type": "array",
+  "minItems": 6236,
+  "maxItems": 6236,
+  "items": {
+    "type": "object",
+    "title": "Verse",
+    "required": ["id", "surah", "ayah", "text"],
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "type": "integer",
+        "description": "Global verse index (1–6236)",
+        "minimum": 1,
+        "maximum": 6236
+      },
+      "surah": {
+        "type": "integer",
+        "description": "Surah number (1–114)",
+        "minimum": 1,
+        "maximum": 114
+      },
+      "ayah": {
+        "type": "integer",
+        "description": "Ayah number within the surah",
+        "minimum": 1
+      },
+      "text": {
+        "type": "string",
+        "description": "Translation text — must not be empty or whitespace only",
+        "minLength": 1,
+        "pattern": ".*\\S.*"
+      }
+    }
+  }
+}

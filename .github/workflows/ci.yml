@@ -1,0 +1,44 @@
+name: Validate Translations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/**/*.json'
+      - 'schemas/**'
+      - 'scripts/validate.py'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'data/**/*.json'
+      - 'schemas/**'
+      - 'scripts/validate.py'
+
+jobs:
+  validate:
+    name: JSON Schema & Integrity Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install jsonschema
+
+      - name: Run validation
+        run: python scripts/validate.py
+
+      - name: Upload checksums artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksums
+          path: checksums.md5
+          retention-days: 30

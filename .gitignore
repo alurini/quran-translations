@@ -1,0 +1,43 @@
+# PDFs (large source files, not redistributed)
+**/*.pdf
+**/*.PDF
+
+# API keys and secrets — NEVER commit these
+persian/persian.py
+
+# Temporary debug/test output files
+*.log
+bal_*.txt
+kur_*.txt
+run_*.txt
+debug*.txt
+other_*.txt
+page_struct.txt
+tesseract_install.log
+*.png
+*.jpg
+*.jpeg
+page_sample_*.jpg
+
+# Checkpoint files (intermediate extraction state)
+**/.checkpoint_*.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Temporary extraction directories
+tessdata_tmp/
+azerbaijani/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Claude session files
+.claude/

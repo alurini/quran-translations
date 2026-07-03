@@ -1,0 +1,1 @@
+e0b82e98ea88afda506ef8b12ca5ab805e815aa8bedeecf40f6d06c13971f5dd  quran_ind.json
