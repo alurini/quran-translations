@@ -31,7 +31,7 @@ A personal, community-driven effort to make Quran translations published by the 
 ## Repository Structure
 
 ```
-quran-json/
+quran-translations/
 ├── data/
 │   ├── bal/
 │   │   ├── quran_bal.json
@@ -103,7 +103,7 @@ Each translation file is a JSON array of verse objects:
 
 ```javascript
 const response = await fetch(
-  'https://raw.githubusercontent.com/YOUR_USERNAME/quran-json/main/data/ur/quran_ur.json'
+  'https://raw.githubusercontent.com/alurini/quran-translations/main/data/ur/quran_ur.json'
 );
 const verses = await response.json();
 
@@ -120,7 +120,7 @@ console.log(ayatAlKursi.text);
 ```python
 import json, urllib.request
 
-url = 'https://raw.githubusercontent.com/YOUR_USERNAME/quran-json/main/data/ur/quran_ur.json'
+url = 'https://raw.githubusercontent.com/alurini/quran-translations/main/data/ur/quran_ur.json'
 with urllib.request.urlopen(url) as r:
     verses = json.loads(r.read())
 
@@ -135,7 +135,7 @@ print(ayat_al_kursi['text'])
 ### Local Usage
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/quran-json.git
+git clone https://github.com/alurini/quran-translations.git
 ```
 
 ```python
@@ -161,7 +161,7 @@ sha256sum -c data/ur/sha256.txt
 # Windows (PowerShell)
 $hash = (Get-FileHash data\ur\quran_ur.json -Algorithm SHA256).Hash.ToLower()
 $expected = (Get-Content data\ur\sha256.txt).Split(' ')[0]
-if ($hash -eq $expected) { "✓ Verified" } else { "✗ Mismatch!" }
+if ($hash -eq $expected) { "Verified" } else { "Mismatch!" }
 ```
 
 ---
