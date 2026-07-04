@@ -760,9 +760,9 @@ async function init() {
   applyTheme(isDark);
   applyFS();
   setOnline(navigator.onLine);
-  applyLang(curLang);
   buildLangStrip();
   buildLangGrid();
+  applyLang(curLang);
   updateInstallUI();
   await loadData();
   buildSurahList();
@@ -838,11 +838,11 @@ async function fetchArabic(s) {
 function renderCards(s, arTexts) {
   const rtl = LANGS[curLang].rtl;
   const svs = surahMap[s] || [];
-  const bism = s !== 9 ? `<div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>` : '';
+  const bism = (s !== 9 && s !== 1) ? `<div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>` : '';
   return bism + svs.map(v => {
     const arText = arTexts ? arTexts[v.ayah] : null;
     const arBlock = arText
-      ? `<div class="ayah-ar">${arText}</div>`
+      ? `<div class="ayah-ar">${esc(arText)}</div>`
       : `<div class="ayah-ar" style="color:var(--text-3);font-size:.8rem">جاري تحميل النص العربي...</div>`;
     return `<div class="ayah-card" id="ay${v.ayah}">
       <div class="ayah-hdr">
@@ -854,7 +854,7 @@ function renderCards(s, arTexts) {
       </div>
       <div class="ayah-body">
         ${arBlock}
-        <div class="ayah-text ${rtl?'rtl':'ltr'}">${v.text}</div>
+        <div class="ayah-text ${rtl?'rtl':'ltr'}">${esc(v.text)}</div>
       </div>
     </div>`;
   }).join('') || '<div class="empty">لا توجد آيات</div>';
@@ -884,12 +884,13 @@ async function openSurah(s) {
   }
 }
 
-function escAttr(s) { return s.replace(/"/g,'&quot;').replace(/\n/g,' '); }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function escAttr(s) { return esc(s).replace(/\n/g,' '); }
 function copyAyah(n, btn) {
   navigator.clipboard?.writeText(btn.dataset.text).then(() => showToast(`آية ${n} — تم النسخ`));
 }
 function prevSurah() { const i=allSurahs.indexOf(curSurah); if(i>0) openSurah(allSurahs[i-1]); }
-function nextSurah() { const i=allSurahs.indexOf(curSurah); if(i<allSurahs.length-1) openSurah(allSurahs[i+1]); }
+function nextSurah() { const i=allSurahs.indexOf(curSurah); if(i!==-1 && i<allSurahs.length-1) openSurah(allSurahs[i+1]); }
 function goHome() {
   document.getElementById('homeBtn').style.display = 'none';
   document.getElementById('pageTitle').textContent = 'القرآن الكريم';
@@ -909,17 +910,15 @@ function doSearch(q) {
   el.innerHTML = hits.map(v => `
     <div class="s-result" onclick="jumpToAyah(${v.surah},${v.ayah})">
       <div class="s-result-meta">سورة ${v.surah} · ${SURAH_AR[v.surah-1]} · آية ${v.ayah}</div>
-      <div class="s-result-text ${rtl?'rtl':'ltr'}">${v.text.replace(re,m=>`<mark>${m}</mark>`).slice(0,250)}</div>
+      <div class="s-result-text ${rtl?'rtl':'ltr'}">${esc(v.text).replace(re,m=>`<mark>${m}</mark>`).slice(0,250)}</div>
     </div>`).join('');
 }
-function jumpToAyah(s, a) {
-  openSurah(s);
-  setTimeout(() => {
-    const el = document.getElementById('ay'+a);
-    el?.scrollIntoView({ block:'center', behavior:'smooth' });
-    el?.classList.add('hl');
-    setTimeout(() => el?.classList.remove('hl'), 2000);
-  }, 350);
+async function jumpToAyah(s, a) {
+  await openSurah(s);
+  const el = document.getElementById('ay'+a);
+  el?.scrollIntoView({ block:'center', behavior:'smooth' });
+  el?.classList.add('hl');
+  setTimeout(() => el?.classList.remove('hl'), 2000);
 }
 
 // ── Language ──────────────────────────────────────────────────────────
@@ -1003,10 +1002,16 @@ function showFsBar(show) {
 }
 
 // ── Cache ──────────────────────────────────────────────────────────────
+async function getAppCache() {
+  const names = await caches.keys();
+  const name = names.find(k => k.startsWith('quran-'));
+  return name ? caches.open(name) : null;
+}
 async function updateCachedList() {
   if (!('caches' in window)) { document.getElementById('cachedList').textContent = 'غير مدعوم'; return; }
   try {
-    const cache = await caches.open('quran-v1');
+    const cache = await getAppCache();
+    if (!cache) { document.getElementById('cachedList').textContent = 'لا توجد لغات محفوظة — افتح أي لغة لحفظها تلقائياً'; return; }
     const keys = await cache.keys();
     const cached = Object.entries(LANGS)
       .filter(([,l]) => keys.some(k => k.url.includes(l.file.split('/').pop())))
@@ -1019,8 +1024,9 @@ async function updateCachedList() {
 async function cacheCurrent() {
   showToast('جاري حفظ ' + LANGS[curLang].name + '...');
   try {
-    const cache = await caches.open('quran-v1');
-    await cache.add(LANGS[curLang].file);
+    const cache = await getAppCache();
+    if (!cache) throw new Error('no cache');
+    await Promise.all([cache.add(LANGS[curLang].file), cache.add(BASE + 'ar/quran_ar.json')]);
     showToast(LANGS[curLang].name + ' — محفوظة ✓');
     updateCachedList();
   } catch(e) { showToast('فشل الحفظ'); }
