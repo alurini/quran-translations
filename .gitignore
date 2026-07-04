@@ -18,6 +18,10 @@ tesseract_install.log
 *.jpg
 *.jpeg
 page_sample_*.jpg
+# App icons — tracked
+!app/icon-192.png
+!app/icon-512.png
+!screenshots/*.png
 
 # Checkpoint files (intermediate extraction state)
 **/.checkpoint_*.json

@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#ffffff" id="metaTheme">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default" id="metaApple">
+<meta name="apple-mobile-web-app-title" content="Quran">
+<meta name="description" content="Quran translations in minority languages — works offline">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Noto+Naskh+Arabic:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>القرآن الكريم</title>
+<style>
+/* ── Theme Variables ── */
+[data-theme="light"] {
+  --bg:         #f8f9fa;
+  --surface:    #ffffff;
+  --surface2:   #f1f3f5;
+  --border:     #e9ecef;
+  --border2:    #dee2e6;
+  --accent:     #1b7a4a;
+  --accent-bg:  #e8f5ee;
+  --accent-mid: #2d9e60;
+  --text:       #1a1a2e;
+  --text-2:     #495057;
+  --text-3:     #868e96;
+  --shadow:     0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.1);
+  --radius:     14px;
+  --topbar-bg:  rgba(255,255,255,.92);
+}
+[data-theme="dark"] {
+  --bg:         #0d1f15;
+  --surface:    #162e1f;
+  --surface2:   #1e3d2a;
+  --border:     #274d36;
+  --border2:    #2d5a3d;
+  --accent:     #4ade80;
+  --accent-bg:  #1a3d28;
+  --accent-mid: #22c55e;
+  --text:       #e8f5ee;
+  --text-2:     #a3d9b5;
+  --text-3:     #4d7a5e;
+  --shadow:     0 1px 3px rgba(0,0,0,.3);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.4);
+  --topbar-bg:  rgba(22,46,31,.95);
+}
+
+/* ── Reset ── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;overflow:hidden;transition:background .25s,color .25s}
+
+/* ── Topbar ── */
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  background:var(--topbar-bg);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;
+  padding-top:calc(10px + env(safe-area-inset-top,0px));
+  transition:background .25s,border-color .25s;
+}
+.lang-pill{
+  background:var(--accent-bg);color:var(--accent);
+  font-size:.65rem;font-weight:800;letter-spacing:.08em;
+  padding:5px 11px;border-radius:20px;text-transform:uppercase;
+  cursor:pointer;border:1.5px solid color-mix(in srgb,var(--accent) 40%,transparent);
+  flex-shrink:0;transition:all .15s;
+}
+.lang-pill:hover{background:var(--accent);color:var(--surface)}
+.page-title{
+  flex:1;font-size:.9rem;font-weight:600;
+  text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:color .25s;
+}
+.icon-btn{
+  background:none;border:none;color:var(--text-3);cursor:pointer;
+  padding:7px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;transition:all .15s;
+}
+.icon-btn:hover{background:var(--surface2);color:var(--text)}
+
+/* ── Offline Banner ── */
+.offline-banner{
+  position:fixed;left:0;right:0;z-index:190;
+  background:#fee2e2;color:#dc2626;
+  font-size:.75rem;text-align:center;padding:7px 12px;
+  display:none;font-weight:600;
+  border-bottom:1px solid #fca5a5;
+}
+[data-theme="dark"] .offline-banner{background:#450a0a;color:#f87171;border-color:#7f1d1d}
+.offline-banner.show{display:flex;align-items:center;justify-content:center;gap:6px}
+
+/* ── Main Scroll ── */
+.main{position:fixed;left:0;right:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+.main::-webkit-scrollbar{width:3px}
+.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── Views ── */
+.view{display:none;padding-bottom:12px}
+.view.active{display:block}
+
+/* ── Install Banner ── */
+.install-banner{
+  margin:10px 12px 0;padding:14px 15px;
+  background:linear-gradient(135deg,var(--accent-bg),var(--surface2));
+  border:1.5px solid color-mix(in srgb,var(--accent) 50%,transparent);
+  border-radius:var(--radius);
+  display:none;gap:12px;align-items:center;
+}
+.install-banner.show{display:flex}
+.install-icon{font-size:1.6rem;flex-shrink:0}
+.install-text{flex:1;font-size:.82rem;line-height:1.5;color:var(--text-2)}
+.install-text strong{color:var(--text);display:block;font-size:.88rem}
+.install-btn{
+  background:var(--accent);color:var(--surface);
+  border:none;border-radius:8px;padding:8px 14px;
+  font-weight:700;font-size:.8rem;cursor:pointer;flex-shrink:0;
+  transition:opacity .15s;
+}
+.install-btn:hover{opacity:.85}
+.install-close{background:none;border:none;color:var(--text-3);cursor:pointer;font-size:1rem;padding:4px;flex-shrink:0}
+
+/* ── Language Strip ── */
+.lang-strip{
+  display:flex;gap:8px;padding:8px 12px 4px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.lang-strip::-webkit-scrollbar{display:none}
+.lang-chip{
+  flex-shrink:0;display:flex;flex-direction:column;align-items:center;
+  gap:2px;padding:8px 14px;
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:40px;cursor:pointer;transition:all .15s;
+  white-space:nowrap;
+}
+.lang-chip:hover{border-color:var(--accent);background:var(--accent-bg)}
+.lang-chip.sel{
+  border-color:var(--accent);background:var(--accent-bg);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 12%,transparent);
+}
+.lang-chip-nat{font-size:.88rem;font-weight:700;font-family:'Noto Naskh Arabic','Amiri',serif;color:var(--text)}
+.lang-chip-en{font-size:.62rem;color:var(--text-3);font-family:'Inter',sans-serif;font-weight:500}
+.lang-chip.sel .lang-chip-nat{color:var(--accent)}
+.lang-chip.sel .lang-chip-en{color:var(--accent-mid)}
+
+/* ── Search input ── */
+.search-wrap{padding:10px 12px;position:sticky;top:0;background:var(--bg);z-index:10;transition:background .25s}
+.search-inp-wrap{position:relative}
+.search-inp{
+  width:100%;padding:11px 16px 11px 42px;
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:40px;color:var(--text);font-size:.9rem;outline:none;
+  transition:border-color .2s,box-shadow .2s,background .25s;
+  box-shadow:var(--shadow);
+}
+.search-inp::placeholder{color:var(--text-3)}
+.search-inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
+.search-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--text-3);pointer-events:none}
+
+/* ── Surah List ── */
+.surah-list{padding:0 12px}
+.surah-item{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 14px;margin-bottom:6px;
+  background:var(--surface);border-radius:var(--radius);
+  border:1px solid var(--border);cursor:pointer;
+  transition:all .15s;box-shadow:var(--shadow);
+}
+.surah-item:hover{border-color:var(--accent);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.surah-item:active{transform:translateY(0);box-shadow:var(--shadow)}
+.s-num{
+  width:38px;height:38px;flex-shrink:0;
+  background:var(--accent-bg);color:var(--accent);
+  border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:.75rem;font-weight:700;
+  border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);
+}
+.s-info{flex:1;min-width:0}
+.s-name-ar{font-size:1.05rem;font-weight:700;direction:rtl;font-family:'Noto Naskh Arabic','Amiri',serif}
+.s-name-en{font-size:.72rem;color:var(--text-3);margin-top:2px}
+.s-count{font-size:.72rem;color:var(--text-3);flex-shrink:0;text-align:center;line-height:1.4}
+.s-count .complete{color:var(--accent);font-size:.65rem;font-weight:700}
+
+/* ── Surah nav ── */
+.surah-nav{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:8px 12px;position:sticky;top:0;
+  background:var(--bg);z-index:10;border-bottom:1px solid var(--border);
+  transition:background .25s;
+}
+.snav-btn{
+  flex:1;padding:9px 8px;background:var(--surface);
+  border:1px solid var(--border);border-radius:10px;color:var(--text-2);
+  cursor:pointer;font-size:.78rem;display:flex;align-items:center;
+  justify-content:center;gap:5px;transition:all .15s;white-space:nowrap;
+}
+.snav-btn:hover:not(:disabled){background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+.snav-btn:disabled{opacity:.3;cursor:default}
+.snav-info{font-size:.7rem;color:var(--text-3);white-space:nowrap;flex-shrink:0;text-align:center}
+
+/* ── Bismillah ── */
+.bismillah{
+  text-align:center;padding:22px 20px 10px;
+  font-size:1.4rem;color:var(--accent);direction:rtl;
+  font-family:'Amiri','Noto Naskh Arabic',serif;
+  line-height:2.2;opacity:.95;
+}
+
+/* ── Ayah cards ── */
+.ayah-list{padding:0 12px}
+.ayah-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);margin-bottom:8px;overflow:hidden;
+  box-shadow:var(--shadow);transition:border-color .2s,box-shadow .2s;
+}
+.ayah-card.hl{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 20%,transparent);
+}
+.ayah-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;background:var(--surface2);
+  border-bottom:1px solid var(--border);
+}
+.ayah-num{
+  width:28px;height:28px;background:var(--accent-bg);color:var(--accent);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:700;flex-shrink:0;
+  border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);
+}
+.ayah-copy{
+  background:none;border:none;color:var(--text-3);cursor:pointer;
+  padding:4px 8px;border-radius:6px;font-size:.7rem;
+  display:flex;align-items:center;gap:4px;transition:all .15s;
+}
+.ayah-copy:hover{background:var(--accent-bg);color:var(--accent)}
+.ayah-body{padding:16px 14px}
+.ayah-ar{
+  direction:rtl;text-align:right;
+  font-family:'Amiri','Noto Naskh Arabic',serif;
+  font-size:1.25rem;line-height:2.4;color:var(--text);
+  padding-bottom:12px;margin-bottom:12px;
+  border-bottom:1px solid var(--border);
+  word-break:break-word;
+}
+.ayah-text{font-size:var(--fs,1.1rem);line-height:2.1;word-break:break-word;color:var(--text-2)}
+.ayah-text.rtl{
+  direction:rtl;text-align:right;
+  font-family:'Noto Naskh Arabic','Amiri',serif;
+}
+.ayah-text.ltr{
+  direction:ltr;text-align:left;
+  font-family:'Inter',system-ui,sans-serif;
+  line-height:1.85;
+}
+
+/* ── Search results ── */
+.search-results{padding:0 12px}
+.s-result{
+  padding:12px 14px;margin-bottom:7px;
+  background:var(--surface);border-radius:var(--radius);
+  border:1px solid var(--border);cursor:pointer;
+  transition:all .15s;box-shadow:var(--shadow);
+}
+.s-result:hover{border-color:var(--accent);box-shadow:var(--shadow-md)}
+.s-result-meta{font-size:.68rem;color:var(--accent);margin-bottom:5px;font-weight:700;letter-spacing:.03em}
+.s-result-text{
+  font-size:.85rem;line-height:1.75;color:var(--text-2);
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+}
+.s-result-text.rtl{direction:rtl;text-align:right;font-family:'Noto Naskh Arabic','Amiri',serif}
+.s-result-text.ltr{direction:ltr}
+mark{
+  background:color-mix(in srgb,var(--accent) 18%,transparent);
+  color:var(--accent);border-radius:3px;padding:0 2px;font-weight:600;
+}
+
+/* ── Settings ── */
+.settings-wrap{padding:12px}
+.set-section{margin-bottom:22px}
+.set-label{
+  font-size:.65rem;color:var(--text-3);text-transform:uppercase;
+  letter-spacing:.12em;margin-bottom:8px;padding:0 4px;font-weight:600;
+}
+.set-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;background:var(--surface);border-radius:var(--radius);
+  margin-bottom:6px;border:1px solid var(--border);box-shadow:var(--shadow);
+  transition:background .25s,border-color .25s;
+}
+.set-item-col{flex-direction:column;align-items:flex-start;gap:5px}
+.set-item-label{font-size:.9rem;font-weight:500}
+.set-item-sub{font-size:.72rem;color:var(--text-3)}
+.fs-btns{display:flex;gap:6px;align-items:center}
+.fs-val{font-size:.85rem;color:var(--text-2);min-width:38px;text-align:center;font-weight:600}
+.fs-btn{
+  width:36px;height:36px;
+  background:var(--surface2);color:var(--text);
+  border:1px solid var(--border);border-radius:10px;
+  cursor:pointer;font-weight:700;font-size:1rem;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.fs-btn:hover{background:var(--accent-bg);color:var(--accent);border-color:var(--accent)}
+
+/* ── Theme Toggle ── */
+.theme-toggle{
+  position:relative;width:48px;height:26px;
+  background:var(--border2);border-radius:13px;cursor:pointer;
+  border:none;flex-shrink:0;
+  transition:background .25s;
+}
+.theme-toggle.on{background:var(--accent)}
+.theme-toggle::after{
+  content:'';position:absolute;top:3px;left:3px;
+  width:20px;height:20px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);
+  transition:transform .25s;
+}
+.theme-toggle.on::after{transform:translateX(22px)}
+
+/* ── Lang grid ── */
+.lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lang-card{
+  padding:13px 12px;background:var(--surface);
+  border:1.5px solid var(--border);border-radius:var(--radius);
+  cursor:pointer;text-align:center;transition:all .15s;
+  box-shadow:var(--shadow);
+}
+.lang-card:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.lang-card.sel{border-color:var(--accent);background:var(--accent-bg)}
+.lang-code{font-size:.62rem;color:var(--accent);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.lang-en{font-size:.82rem;margin-top:4px;font-weight:600}
+.lang-nat{font-size:.9rem;color:var(--text-2);margin-top:2px;font-family:'Noto Naskh Arabic','Amiri',serif}
+.lang-dir{font-size:.58rem;color:var(--text-3);margin-top:5px;background:var(--surface2);border-radius:4px;padding:2px 6px;display:inline-block}
+
+/* ── Bottom Nav ── */
+.bottomnav{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:var(--topbar-bg);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--border);
+  display:flex;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  transition:background .25s,border-color .25s;
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:3px;background:none;border:none;
+  color:var(--text-3);cursor:pointer;font-size:.58rem;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase;padding:10px 4px;
+  position:relative;transition:color .15s;
+}
+.nav-btn.active{color:var(--accent)}
+.nav-btn svg{width:20px;height:20px;transition:transform .15s}
+.nav-btn.active svg{transform:scale(1.1)}
+.nav-dot{
+  position:absolute;bottom:7px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;background:var(--accent);border-radius:50%;
+  opacity:0;transition:opacity .15s;
+}
+.nav-btn.active .nav-dot{opacity:1}
+
+/* ── Loading / Empty ── */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:240px;gap:14px;color:var(--text-3)}
+.spinner{width:32px;height:32px;border:2.5px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:50px 24px;color:var(--text-3);font-size:.88rem;line-height:1.8}
+
+/* ── Font Size Bar ── */
+.fs-bar{
+  position:fixed;bottom:76px;left:50%;transform:translateX(-50%);
+  z-index:300;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:40px;box-shadow:var(--shadow-md);
+  display:flex;align-items:center;gap:0;
+  overflow:hidden;
+  opacity:0;pointer-events:none;
+  transition:opacity .2s, transform .2s;
+  transform:translateX(-50%) translateY(8px);
+}
+.fs-bar.show{opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0)}
+.fs-bar-btn{
+  background:none;border:none;cursor:pointer;
+  color:var(--text-2);padding:10px 16px;
+  font-size:1rem;font-weight:700;line-height:1;
+  transition:background .15s,color .15s;
+  display:flex;align-items:center;justify-content:center;
+}
+.fs-bar-btn:hover{background:var(--accent-bg);color:var(--accent)}
+.fs-bar-sep{width:1px;background:var(--border);height:20px;flex-shrink:0}
+.fs-bar-val{
+  padding:0 14px;font-size:.78rem;font-weight:700;
+  color:var(--accent);min-width:44px;text-align:center;white-space:nowrap;
+}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:78px;left:50%;
+  transform:translateX(-50%) translateY(12px);
+  background:var(--text);color:var(--bg);
+  border-radius:40px;padding:9px 20px;font-size:.8rem;font-weight:600;
+  opacity:0;transition:all .25s;pointer-events:none;
+  white-space:nowrap;z-index:999;box-shadow:var(--shadow-md);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar" id="topbar">
+  <button class="lang-pill" id="langPill" onclick="showView('settings')">ur</button>
+  <span class="page-title" id="pageTitle">القرآن الكريم</span>
+  <button class="icon-btn" id="homeBtn" onclick="goHome()" style="display:none" aria-label="الرئيسية">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+  </button>
+  <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" aria-label="تبديل المظهر">
+    <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  </button>
+</header>
+
+<div class="offline-banner" id="offlineBanner">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
+  غير متصل — يعمل من الذاكرة المخزنة
+</div>
+
+<main class="main" id="mainScroll">
+
+  <!-- Home -->
+  <div class="view active" id="viewHome">
+    <div id="installBanner" class="install-banner">
+      <span class="install-icon">📲</span>
+      <div class="install-text">
+        <strong id="installTitle">ثبّت التطبيق</strong>
+        <span id="installSub">يعمل بدون إنترنت بعد التثبيت</span>
+      </div>
+      <button class="install-btn" id="installBtn" onclick="installApp()">تثبيت</button>
+      <button class="install-close" onclick="dismissInstall()" aria-label="إغلاق">✕</button>
+    </div>
+    <div class="lang-strip" id="langStrip"></div>
+    <div class="search-wrap" style="padding-top:6px">
+      <div class="search-inp-wrap">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-inp" id="surahSearch" placeholder="ابحث عن سورة..." oninput="filterSurahs(this.value)" autocomplete="off" dir="auto">
+      </div>
+    </div>
+    <div class="surah-list" id="surahList">
+      <div class="loading"><div class="spinner"></div><span>جاري التحميل...</span></div>
+    </div>
+  </div>
+
+  <!-- Ayah View -->
+  <div class="view" id="viewAyah">
+    <div class="surah-nav">
+      <button class="snav-btn" id="btnPrev" onclick="prevSurah()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+        السابقة
+      </button>
+      <div class="snav-info" id="surahInfo"></div>
+      <button class="snav-btn" id="btnNext" onclick="nextSurah()">
+        التالية
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,18 15,12 9,6"/></svg>
+      </button>
+    </div>
+    <div class="ayah-list" id="ayahList"></div>
+  </div>
+
+  <!-- Search -->
+  <div class="view" id="viewSearch">
+    <div class="search-wrap" style="padding-top:12px">
+      <div class="search-inp-wrap">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-inp" id="searchInp" placeholder="ابحث في الآيات..." oninput="schedSearch(this.value)" autocomplete="off" dir="auto">
+      </div>
+    </div>
+    <div class="search-results" id="searchRes">
+      <div class="empty">اكتب كلمة للبحث في الآيات</div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="view" id="viewSettings">
+    <div class="settings-wrap">
+
+      <div class="set-section">
+        <div class="set-label">اللغة</div>
+        <div class="lang-grid" id="langGrid"></div>
+      </div>
+
+      <div class="set-section">
+        <div class="set-label">المظهر والعرض</div>
+        <div class="set-item">
+          <div>
+            <div class="set-item-label">الوضع الليلي</div>
+            <div class="set-item-sub">Dark Mode</div>
+          </div>
+          <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" aria-label="تبديل المظهر"></button>
+        </div>
+        <div class="set-item">
+          <div>
+            <div class="set-item-label">حجم النص</div>
+            <div class="set-item-sub" id="fsLabel">1.10</div>
+          </div>
+          <div class="fs-btns">
+            <button class="fs-btn" onclick="chFS(-0.1)" aria-label="تصغير">−</button>
+            <span class="fs-val">أ</span>
+            <button class="fs-btn" onclick="chFS(+0.1)" aria-label="تكبير">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="set-section">
+        <div class="set-label">الاستخدام بدون إنترنت</div>
+        <div class="set-item set-item-col">
+          <div class="set-item-label">اللغات المحفوظة</div>
+          <div class="set-item-sub" id="cachedList">جاري الفحص...</div>
+        </div>
+        <div class="set-item">
+          <div>
+            <div class="set-item-label">حفظ اللغة الحالية</div>
+            <div class="set-item-sub">~2-3 MB</div>
+          </div>
+          <button class="fs-btn" onclick="cacheCurrent()" style="width:auto;padding:0 14px">حفظ</button>
+        </div>
+      </div>
+
+      <div class="set-section">
+        <div class="set-label">تثبيت التطبيق</div>
+        <div class="set-item" id="installSection">
+          <div>
+            <div class="set-item-label" id="installSettingsTitle">ثبّت على الشاشة الرئيسية</div>
+            <div class="set-item-sub" id="installSettingsSub">يعمل بدون إنترنت بعد التثبيت</div>
+          </div>
+          <button class="fs-btn" id="installSettingsBtn" onclick="triggerInstall()" style="width:auto;padding:0 14px">تثبيت</button>
+        </div>
+        <div class="set-item" id="iosInstallHint" style="display:none;flex-direction:column;align-items:flex-start;gap:6px">
+          <div class="set-item-label">تثبيت على iOS / Safari</div>
+          <div class="set-item-sub" style="line-height:1.7">
+            اضغط على زر المشاركة
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            ثم اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="set-section">
+        <div class="set-label">عن التطبيق</div>
+        <div class="set-item set-item-col">
+          <div class="set-item-label">ترجمات القرآن الكريم</div>
+          <div class="set-item-sub">مشروع شخصي · ترجمات مجمع الملك فهد</div>
+          <div class="set-item-sub" style="font-size:.65rem;margin-top:2px">هذا جهد شخصي قد يحتوي أخطاء · ليس الموقع الرسمي للمجمع</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<nav class="bottomnav">
+  <button class="nav-btn active" id="navHome" onclick="showView('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+    السور
+    <span class="nav-dot"></span>
+  </button>
+  <button class="nav-btn" id="navSearch" onclick="showView('search')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    بحث
+    <span class="nav-dot"></span>
+  </button>
+  <button class="nav-btn" id="navSettings" onclick="showView('settings')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    إعدادات
+    <span class="nav-dot"></span>
+  </button>
+</nav>
+
+<div class="fs-bar" id="fsBar">
+  <button class="fs-bar-btn" onclick="chFS(-0.1)" aria-label="تصغير">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <div class="fs-bar-sep"></div>
+  <span class="fs-bar-val" id="fsBarVal">أ</span>
+  <div class="fs-bar-sep"></div>
+  <button class="fs-bar-btn" onclick="chFS(+0.1)" aria-label="تكبير">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <div class="fs-bar-sep"></div>
+  <button class="fs-bar-btn" onclick="resetFS()" aria-label="إعادة تعيين" title="إعادة تعيين">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────
+const IS_GH = location.hostname.includes('github.io');
+const IS_ALAGR = location.hostname.includes('alagr.com');
+const BASE = (IS_GH || IS_ALAGR)
+  ? '/data/'
+  : '../data/';
+
+const LANGS = {
+  ur:  { name:'Urdu',       native:'اردو',      rtl:true,  file:BASE+'ur/quran_ur.json' },
+  bal: { name:'Balochi',    native:'بلوچی',     rtl:true,  file:BASE+'bal/quran_bal.json' },
+  lez: { name:'Lezgian',    native:'Лезги',     rtl:false, file:BASE+'lez/quran_lez.json' },
+  ira: { name:'Iranouniya', native:'Iranon',    rtl:false, file:BASE+'ira/quran_ira.json' },
+  far: { name:'Persian',    native:'فارسی',     rtl:true,  file:BASE+'far/quran_far.json' },
+  ind: { name:'Indonesian', native:'Indonesia', rtl:false, file:BASE+'ind/quran_ind.json' },
+};
+
+// ── UI Strings per language ───────────────────────────────────────────
+const UI = {
+  ur:  { install:'ایپ انسٹال کریں', installSub:'انسٹال کے بعد بغیر انٹرنیٹ کے کام کرتا ہے', installBtn:'انسٹال', offline:'آف لائن — کیش سے لوڈ', search:'سورہ تلاش کریں...', searchAyah:'آیات میں تلاش کریں...' },
+  bal: { install:'ایپ نصب کنید', installSub:'نصب پس بی‌نیت اینترنت کار کنت', installBtn:'نصب', offline:'آفلاین — کیشا', search:'سورت لبّیت...', searchAyah:'آیت لبّیت...' },
+  far: { install:'نصب برنامه', installSub:'پس از نصب بدون اینترنت کار می‌کند', installBtn:'نصب', offline:'آفلاین — از حافظه', search:'جستجوی سوره...', searchAyah:'جستجو در آیات...' },
+  ira: { install:'I-install ang app', installSub:'Gumagana nang walang internet', installBtn:'I-install', offline:'Offline — mula sa cache', search:'Maghanap ng surah...', searchAyah:'Maghanap sa mga talata...' },
+  lez: { install:'Приложение установить', installSub:'Интернетсуз кIвалахзава', installBtn:'Установить', offline:'Офлайн — кешдай', search:'Суре жугъун...', searchAyah:'Аяте жугъун...' },
+  ind: { install:'Pasang aplikasi', installSub:'Bisa dipakai tanpa internet', installBtn:'Pasang', offline:'Offline — dari cache', search:'Cari surah...', searchAyah:'Cari dalam ayat...' },
+};
+const UI_DEFAULT = { install:'ثبّت التطبيق', installSub:'يعمل بدون إنترنت بعد التثبيت', installBtn:'تثبيت', offline:'غير متصل — يعمل من الذاكرة', search:'ابحث عن سورة...', searchAyah:'ابحث في الآيات...' };
+function t(key) { return (UI[curLang]||UI_DEFAULT)[key] || UI_DEFAULT[key]; }
+
+const SURAH_AR = ['الفاتحة','البقرة','آل عمران','النساء','المائدة','الأنعام','الأعراف','الأنفال','التوبة','يونس','هود','يوسف','الرعد','إبراهيم','الحجر','النحل','الإسراء','الكهف','مريم','طه','الأنبياء','الحج','المؤمنون','النور','الفرقان','الشعراء','النمل','القصص','العنكبوت','الروم','لقمان','السجدة','الأحزاب','سبأ','فاطر','يس','الصافات','ص','الزمر','غافر','فصلت','الشورى','الزخرف','الدخان','الجاثية','الأحقاف','محمد','الفتح','الحجرات','ق','الذاريات','الطور','النجم','القمر','الرحمن','الواقعة','الحديد','المجادلة','الحشر','الممتحنة','الصف','الجمعة','المنافقون','التغابن','الطلاق','التحريم','الملك','القلم','الحاقة','المعارج','نوح','الجن','المزمل','المدثر','القيامة','الإنسان','المرسلات','النبأ','النازعات','عبس','التكوير','الانفطار','المطففين','الانشقاق','البروج','الطارق','الأعلى','الغاشية','الفجر','البلد','الشمس','الليل','الضحى','الشرح','التين','العلق','القدر','البينة','الزلزلة','العاديات','القارعة','التكاثر','العصر','الهمزة','الفيل','قريش','الماعون','الكوثر','الكافرون','النصر','المسد','الإخلاص','الفلق','الناس'];
+const SURAH_EN = ['Al-Fatiha','Al-Baqarah','Ali Imran','An-Nisa','Al-Maidah','Al-Anam','Al-Araf','Al-Anfal','At-Tawbah','Yunus','Hud','Yusuf','Ar-Rad','Ibrahim','Al-Hijr','An-Nahl','Al-Isra','Al-Kahf','Maryam','Ta-Ha','Al-Anbiya','Al-Hajj','Al-Muminun','An-Nur','Al-Furqan','Ash-Shuara','An-Naml','Al-Qasas','Al-Ankabut','Ar-Rum','Luqman','As-Sajdah','Al-Ahzab','Saba','Fatir','Ya-Sin','As-Saffat','Sad','Az-Zumar','Ghafir','Fussilat','Ash-Shura','Az-Zukhruf','Ad-Dukhan','Al-Jathiyah','Al-Ahqaf','Muhammad','Al-Fath','Al-Hujurat','Qaf','Adh-Dhariyat','At-Tur','An-Najm','Al-Qamar','Ar-Rahman','Al-Waqiah','Al-Hadid','Al-Mujadila','Al-Hashr','Al-Mumtahanah','As-Saf','Al-Jumuah','Al-Munafiqun','At-Taghabun','At-Talaq','At-Tahrim','Al-Mulk','Al-Qalam','Al-Haqqah','Al-Maarij','Nuh','Al-Jinn','Al-Muzzammil','Al-Muddaththir','Al-Qiyamah','Al-Insan','Al-Mursalat','An-Naba','An-Naziat','Abasa','At-Takwir','Al-Infitar','Al-Mutaffifin','Al-Inshiqaq','Al-Buruj','At-Tariq','Al-Ala','Al-Ghashiyah','Al-Fajr','Al-Balad','Ash-Shams','Al-Layl','Ad-Duha','Ash-Sharh','At-Tin','Al-Alaq','Al-Qadr','Al-Bayyinah','Az-Zalzalah','Al-Adiyat','Al-Qariah','At-Takathur','Al-Asr','Al-Humazah','Al-Fil','Quraysh','Al-Maun','Al-Kawthar','Al-Kafirun','An-Nasr','Al-Masad','Al-Ikhlas','Al-Falaq','An-Nas'];
+const AYAH_C = [7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6];
+
+// ── State ─────────────────────────────────────────────────────────────
+let verses=[], surahMap={}, allSurahs=[];
+let curLang = localStorage.getItem('lang') || 'ur';
+let curSurah = 1;
+let fs = parseFloat(localStorage.getItem('fs') || '1.1');
+let isDark = localStorage.getItem('theme') === 'dark';
+let deferredInstall = null;
+const arCache = {}; // surah# → array of Arabic ayah texts
+
+// ── PWA ───────────────────────────────────────────────────────────────
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+const isInstalled = window.matchMedia('(display-mode: standalone)').matches
+  || navigator.standalone === true;
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW:', e));
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  document.getElementById('installBanner').classList.add('show');
+  document.getElementById('installSettingsBtn').disabled = false;
+  document.getElementById('installSettingsBtn').style.opacity = '1';
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').classList.remove('show');
+  document.getElementById('installSection').style.display = 'none';
+  showToast('تم التثبيت بنجاح ✓');
+});
+
+function installApp() {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(r => {
+    document.getElementById('installBanner').classList.remove('show');
+    deferredInstall = null;
+  });
+}
+
+function triggerInstall() {
+  if (deferredInstall) {
+    deferredInstall.prompt();
+    deferredInstall.userChoice.then(() => { deferredInstall = null; });
+  } else if (isIOS) {
+    document.getElementById('iosInstallHint').style.display = 'flex';
+    document.getElementById('installSection').style.display = 'none';
+  } else {
+    showToast('افتح الموقع من Chrome أو Edge للتثبيت');
+  }
+}
+
+function dismissInstall() { document.getElementById('installBanner').classList.remove('show'); }
+
+function updateInstallUI() {
+  if (isInstalled) {
+    document.getElementById('installSection').style.display = 'none';
+    document.getElementById('iosInstallHint').style.display = 'none';
+    return;
+  }
+  if (isIOS) {
+    document.getElementById('installSection').style.display = 'none';
+    document.getElementById('iosInstallHint').style.display = 'flex';
+    return;
+  }
+  // Android/Desktop: button waits for beforeinstallprompt
+  if (!deferredInstall) {
+    document.getElementById('installSettingsBtn').style.opacity = '.4';
+    document.getElementById('installSettingsBtn').disabled = true;
+    document.getElementById('installSettingsSub').textContent = 'سيظهر زر التثبيت تلقائياً عند توفره';
+  }
+}
+
+// ── Theme ─────────────────────────────────────────────────────────────
+function applyTheme(dark) {
+  isDark = dark;
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.getElementById('metaTheme').content = dark ? '#162e1f' : '#ffffff';
+  document.getElementById('metaApple').content = dark ? 'black-translucent' : 'default';
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) btn.classList.toggle('on', dark);
+  const icon = document.getElementById('themeIcon');
+  if (dark) {
+    icon.innerHTML = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+  } else {
+    icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+  }
+}
+function toggleTheme() { applyTheme(!isDark); }
+
+// ── Offline ───────────────────────────────────────────────────────────
+function setOnline(on) {
+  document.getElementById('offlineBanner').classList.toggle('show', !on);
+  updateLayout();
+}
+window.addEventListener('online',  () => setOnline(true));
+window.addEventListener('offline', () => setOnline(false));
+
+// ── Layout ────────────────────────────────────────────────────────────
+function updateLayout() {
+  const topH = document.getElementById('topbar').offsetHeight
+    + (document.getElementById('offlineBanner').classList.contains('show') ? 34 : 0);
+  const botH = document.querySelector('.bottomnav').offsetHeight;
+  const main = document.getElementById('mainScroll');
+  main.style.top = topH + 'px';
+  main.style.bottom = botH + 'px';
+  document.getElementById('offlineBanner').style.top = document.getElementById('topbar').offsetHeight + 'px';
+}
+window.addEventListener('resize', updateLayout);
+
+// ── Init ──────────────────────────────────────────────────────────────
+async function init() {
+  applyTheme(isDark);
+  applyFS();
+  setOnline(navigator.onLine);
+  applyLang(curLang);
+  buildLangStrip();
+  buildLangGrid();
+  updateInstallUI();
+  await loadData();
+  buildSurahList();
+  updateCachedList();
+  updateLayout();
+}
+
+// ── Load ──────────────────────────────────────────────────────────────
+async function loadData() {
+  document.getElementById('surahList').innerHTML =
+    '<div class="loading"><div class="spinner"></div><span>جاري التحميل...</span></div>';
+  try {
+    const res = await fetch(LANGS[curLang].file);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    verses = await res.json();
+    surahMap = {};
+    for (const v of verses) {
+      if (!surahMap[v.surah]) surahMap[v.surah] = [];
+      surahMap[v.surah].push(v);
+    }
+    allSurahs = Object.keys(surahMap).map(Number).sort((a,b) => a-b);
+    navigator.serviceWorker?.controller?.postMessage({ type:'CACHE_LANG', lang:curLang });
+  } catch(e) {
+    document.getElementById('surahList').innerHTML =
+      `<div class="empty">تعذّر التحميل<br><small style="color:var(--text-3)">${e.message}</small><br><br>تأكد من الاتصال بالإنترنت عند أول استخدام</div>`;
+  }
+}
+
+// ── Surah List ────────────────────────────────────────────────────────
+function buildSurahList(q = '') {
+  const lq = q.toLowerCase();
+  const list = allSurahs.filter(s =>
+    !lq || SURAH_AR[s-1].includes(q) || SURAH_EN[s-1].toLowerCase().includes(lq) || String(s).startsWith(q)
+  );
+  if (!list.length) { document.getElementById('surahList').innerHTML = '<div class="empty">لا نتائج</div>'; return; }
+  document.getElementById('surahList').innerHTML = list.map(s => {
+    const got = surahMap[s].length, exp = AYAH_C[s-1];
+    return `<div class="surah-item" onclick="openSurah(${s})">
+      <div class="s-num">${s}</div>
+      <div class="s-info">
+        <div class="s-name-ar">${SURAH_AR[s-1]}</div>
+        <div class="s-name-en">${SURAH_EN[s-1]}</div>
+      </div>
+      <div class="s-count"><div>${got}/${exp}</div>${got===exp?'<div class="complete">✓</div>':''}</div>
+    </div>`;
+  }).join('');
+}
+function filterSurahs(v) { buildSurahList(v); }
+
+// ── Arabic text — load once, split by surah ───────────────────────────
+let arLoaded = false;
+async function ensureArabic() {
+  if (arLoaded) return;
+  try {
+    const res = await fetch(BASE + 'ar/quran_ar.json');
+    if (!res.ok) throw new Error(res.status);
+    const all = await res.json();
+    for (const v of all) {
+      if (!arCache[v.surah]) arCache[v.surah] = {};
+      arCache[v.surah][v.ayah] = v.text;
+    }
+    arLoaded = true;
+  } catch(e) {
+    console.warn('Arabic load failed:', e.message);
+  }
+}
+
+async function fetchArabic(s) {
+  await ensureArabic();
+  return arCache[s] || null;
+}
+
+function renderCards(s, arTexts) {
+  const rtl = LANGS[curLang].rtl;
+  const svs = surahMap[s] || [];
+  const bism = s !== 9 ? `<div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>` : '';
+  return bism + svs.map(v => {
+    const arText = arTexts ? arTexts[v.ayah] : null;
+    const arBlock = arText
+      ? `<div class="ayah-ar">${arText}</div>`
+      : `<div class="ayah-ar" style="color:var(--text-3);font-size:.8rem">جاري تحميل النص العربي...</div>`;
+    return `<div class="ayah-card" id="ay${v.ayah}">
+      <div class="ayah-hdr">
+        <div class="ayah-num">${v.ayah}</div>
+        <button class="ayah-copy" onclick="copyAyah(${v.ayah},this)" data-text="${escAttr(v.text)}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          نسخ
+        </button>
+      </div>
+      <div class="ayah-body">
+        ${arBlock}
+        <div class="ayah-text ${rtl?'rtl':'ltr'}">${v.text}</div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty">لا توجد آيات</div>';
+}
+
+// ── Ayah View ─────────────────────────────────────────────────────────
+async function openSurah(s) {
+  curSurah = s;
+  const svs = surahMap[s] || [];
+  document.getElementById('pageTitle').textContent = `${SURAH_AR[s-1]} · ${s}`;
+  document.getElementById('surahInfo').textContent = `${svs.length} / ${AYAH_C[s-1]} آية`;
+  document.getElementById('btnPrev').disabled = allSurahs.indexOf(s) <= 0;
+  document.getElementById('btnNext').disabled = allSurahs.indexOf(s) >= allSurahs.length-1;
+  document.getElementById('homeBtn').style.display = 'flex';
+
+  // Render immediately with cached Arabic (or placeholder)
+  document.getElementById('ayahList').innerHTML = renderCards(s, arCache[s] || null);
+  showView('ayah');
+  document.getElementById('mainScroll').scrollTop = 0;
+
+  // Fetch Arabic if not cached, then re-render
+  if (!arCache[s]) {
+    const arTexts = await fetchArabic(s);
+    if (arTexts && curSurah === s) {
+      document.getElementById('ayahList').innerHTML = renderCards(s, arTexts);
+    }
+  }
+}
+
+function escAttr(s) { return s.replace(/"/g,'&quot;').replace(/\n/g,' '); }
+function copyAyah(n, btn) {
+  navigator.clipboard?.writeText(btn.dataset.text).then(() => showToast(`آية ${n} — تم النسخ`));
+}
+function prevSurah() { const i=allSurahs.indexOf(curSurah); if(i>0) openSurah(allSurahs[i-1]); }
+function nextSurah() { const i=allSurahs.indexOf(curSurah); if(i<allSurahs.length-1) openSurah(allSurahs[i+1]); }
+function goHome() {
+  document.getElementById('homeBtn').style.display = 'none';
+  document.getElementById('pageTitle').textContent = 'القرآن الكريم';
+  showView('home');
+}
+
+// ── Search ────────────────────────────────────────────────────────────
+let searchTimer;
+function schedSearch(q) { clearTimeout(searchTimer); searchTimer = setTimeout(() => doSearch(q), 300); }
+function doSearch(q) {
+  const el = document.getElementById('searchRes');
+  if (!q.trim()) { el.innerHTML = '<div class="empty">اكتب كلمة للبحث في الآيات</div>'; return; }
+  const rtl = LANGS[curLang].rtl;
+  const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
+  const hits = verses.filter(v => v.text.toLowerCase().includes(q.toLowerCase())).slice(0,60);
+  if (!hits.length) { el.innerHTML = '<div class="empty">لا نتائج</div>'; return; }
+  el.innerHTML = hits.map(v => `
+    <div class="s-result" onclick="jumpToAyah(${v.surah},${v.ayah})">
+      <div class="s-result-meta">سورة ${v.surah} · ${SURAH_AR[v.surah-1]} · آية ${v.ayah}</div>
+      <div class="s-result-text ${rtl?'rtl':'ltr'}">${v.text.replace(re,m=>`<mark>${m}</mark>`).slice(0,250)}</div>
+    </div>`).join('');
+}
+function jumpToAyah(s, a) {
+  openSurah(s);
+  setTimeout(() => {
+    const el = document.getElementById('ay'+a);
+    el?.scrollIntoView({ block:'center', behavior:'smooth' });
+    el?.classList.add('hl');
+    setTimeout(() => el?.classList.remove('hl'), 2000);
+  }, 350);
+}
+
+// ── Language ──────────────────────────────────────────────────────────
+function buildLangStrip() {
+  document.getElementById('langStrip').innerHTML = Object.entries(LANGS).map(([c,l]) => `
+    <div class="lang-chip ${c===curLang?'sel':''}" onclick="switchLang('${c}')">
+      <span class="lang-chip-nat">${l.native}</span>
+      <span class="lang-chip-en">${l.name}</span>
+    </div>`).join('');
+}
+
+function applyUIStrings() {
+  // Install banner
+  const el = id => document.getElementById(id);
+  if(el('installTitle')) el('installTitle').textContent = t('install');
+  if(el('installSub'))   el('installSub').textContent   = t('installSub');
+  if(el('installBtn'))   el('installBtn').textContent   = t('installBtn');
+  // Search placeholders
+  if(el('surahSearch')) el('surahSearch').placeholder = t('search');
+  if(el('searchInp'))   el('searchInp').placeholder   = t('searchAyah');
+  // Offline banner
+  const ob = el('offlineBanner');
+  if(ob) {
+    const txt = ob.querySelector('span') || ob.childNodes[ob.childNodes.length-1];
+    if(txt && txt.nodeType===3) txt.textContent = ' '+t('offline');
+  }
+}
+
+function buildLangGrid() {
+  document.getElementById('langGrid').innerHTML = Object.entries(LANGS).map(([c,l]) => `
+    <div class="lang-card ${c===curLang?'sel':''}" id="lc-${c}" onclick="switchLang('${c}')">
+      <div class="lang-code">${c}</div>
+      <div class="lang-en">${l.name}</div>
+      <div class="lang-nat">${l.native}</div>
+      <div class="lang-dir">${l.rtl?'RTL →':'← LTR'}</div>
+    </div>`).join('');
+}
+function applyLang(code) {
+  curLang = code;
+  localStorage.setItem('lang', code);
+  document.getElementById('langPill').textContent = LANGS[code].native;
+  document.documentElement.lang = code;
+  document.documentElement.dir = LANGS[code].rtl ? 'rtl' : 'ltr';
+  document.querySelectorAll('.lang-card').forEach(el => el.classList.remove('sel'));
+  document.getElementById('lc-'+code)?.classList.add('sel');
+  // Update strip selection
+  document.querySelectorAll('.lang-chip').forEach(el => el.classList.remove('sel'));
+  document.querySelector(`.lang-chip[onclick="switchLang('${code}')"]`)?.classList.add('sel');
+  applyUIStrings();
+}
+async function switchLang(code) {
+  applyLang(code);
+  buildLangGrid();
+  buildLangStrip();
+  await loadData();
+  buildSurahList();
+  goHome();
+}
+
+// ── Font size ──────────────────────────────────────────────────────────
+function chFS(d) {
+  fs = Math.min(1.8, Math.max(0.8, +(fs+d).toFixed(2)));
+  localStorage.setItem('fs', fs);
+  applyFS();
+}
+function resetFS() {
+  fs = 1.1;
+  localStorage.setItem('fs', fs);
+  applyFS();
+  showToast('تم إعادة تعيين حجم الخط');
+}
+function applyFS() {
+  document.documentElement.style.setProperty('--fs', fs+'rem');
+  document.getElementById('fsLabel').textContent = fs.toFixed(2);
+  // Update floating bar
+  const val = document.getElementById('fsBarVal');
+  if (val) val.textContent = fs.toFixed(1);
+}
+function showFsBar(show) {
+  document.getElementById('fsBar').classList.toggle('show', show);
+}
+
+// ── Cache ──────────────────────────────────────────────────────────────
+async function updateCachedList() {
+  if (!('caches' in window)) { document.getElementById('cachedList').textContent = 'غير مدعوم'; return; }
+  try {
+    const cache = await caches.open('quran-v1');
+    const keys = await cache.keys();
+    const cached = Object.entries(LANGS)
+      .filter(([,l]) => keys.some(k => k.url.includes(l.file.split('/').pop())))
+      .map(([c,l]) => `${l.native} (${c})`);
+    document.getElementById('cachedList').textContent = cached.length
+      ? cached.join(' · ')
+      : 'لا توجد لغات محفوظة — افتح أي لغة لحفظها تلقائياً';
+  } catch(e) { document.getElementById('cachedList').textContent = '—'; }
+}
+async function cacheCurrent() {
+  showToast('جاري حفظ ' + LANGS[curLang].name + '...');
+  try {
+    const cache = await caches.open('quran-v1');
+    await cache.add(LANGS[curLang].file);
+    showToast(LANGS[curLang].name + ' — محفوظة ✓');
+    updateCachedList();
+  } catch(e) { showToast('فشل الحفظ'); }
+}
+
+// ── Views ─────────────────────────────────────────────────────────────
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const map = { home:['viewHome','navHome'], ayah:['viewAyah',null], search:['viewSearch','navSearch'], settings:['viewSettings','navSettings'] };
+  const [vid,nid] = map[name]||[];
+  if (vid) document.getElementById(vid).classList.add('active');
+  if (nid) document.getElementById(nid).classList.add('active');
+  if (name==='search') setTimeout(()=>document.getElementById('searchInp').focus(),120);
+  if (name==='settings') { buildLangGrid(); updateCachedList(); updateInstallUI(); }
+  if (name!=='ayah') {
+    document.getElementById('homeBtn').style.display='none';
+    document.getElementById('pageTitle').textContent='القرآن الكريم';
+  }
+  showFsBar(name === 'ayah');
+  document.getElementById('mainScroll').scrollTop=0;
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+init();
+</script>
+</body>
+</html>

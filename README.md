@@ -6,6 +6,33 @@ A personal, community-driven effort to make Quran translations published by the 
 
 ---
 
+## 📱 Live PWA App
+
+A fully offline-capable Progressive Web App built on this dataset — for minority language communities.
+
+🔗 **[alagr.com/app](https://alagr.com/app/)**
+
+- Works **offline** after first load (Service Worker + cache)
+- **Add to Home Screen** on Android & iOS — installs like a native app
+- 6 languages with automatic RTL/LTR detection
+- Original Arabic text alongside every translation
+- Dark / Light mode · Adjustable font size · In-app search
+
+<table>
+<tr>
+<td><img src="screenshots/home-light.png" width="180" alt="Home screen light mode"/></td>
+<td><img src="screenshots/ayah-dark.png" width="180" alt="Ayah view dark mode"/></td>
+<td><img src="screenshots/search.png" width="180" alt="Search"/></td>
+</tr>
+<tr>
+<td align="center">Home (Light)</td>
+<td align="center">Ayah View (Dark)</td>
+<td align="center">Search</td>
+</tr>
+</table>
+
+---
+
 > ⚠️ **Important Disclaimer**
 >
 > **This is an unofficial, personal project.** It is not affiliated with, endorsed by, or produced by the King Fahd Complex for the Printing of the Holy Quran. The translation texts were extracted from publicly available PDFs published by the Complex using automated OCR and AI-assisted tools — a process that **may introduce errors**. The maintainers make no guarantee of accuracy and bear no responsibility for any errors, omissions, or misuse of the data.
@@ -18,11 +45,12 @@ A personal, community-driven effort to make Quran translations published by the 
 
 | Language | Language Code | Ayahs | Surahs | Validation |
 |---|---|---|---|---|
+| Arabic — Uthmani script (عربي) | `ar` | 6236 | 114 | ✅ Source: alquran.cloud |
 | Balochi (بلوچی) | `bal` | 6236 | 114 | ✅ 100% verified |
 | Persian / Farsi (فارسی) | `far` | 6236 | 114 | ✅ 100% verified |
 | Indonesian (Bahasa Indonesia) | `ind` | 6236 | 114 | ✅ 100% verified |
 | Iranouniya / Maranao | `ira` | 6236 | 114 | ✅ 100% verified |
-| Kurdish Sorani (کوردی سۆرانی) | `ku` | 6236 | 114 | 🔄 In progress |
+| Kurdish Sorani (کوردی سۆرانی) | `ku` | 4733 | 107 | ⚠️ Partial — 76% (PDF structure issues) |
 | Lezgian (Лезги) | `lez` | 6236 | 114 | ✅ 100% verified |
 | Urdu (اردو) | `ur` | 6236 | 114 | ✅ 100% verified |
 
@@ -32,7 +60,15 @@ A personal, community-driven effort to make Quran translations published by the 
 
 ```
 quran-translations/
+├── app/                        ← PWA (Progressive Web App)
+│   ├── index.html
+│   ├── sw.js
+│   ├── manifest.json
+│   ├── icon-192.png
+│   └── icon-512.png
 ├── data/
+│   ├── ar/
+│   │   └── quran_ar.json       ← Arabic Uthmani text (used by PWA)
 │   ├── bal/
 │   │   ├── quran_bal.json
 │   │   └── sha256.txt
