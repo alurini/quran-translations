@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quran-v1';
+const CACHE_NAME = 'quran-v3';
 const SHELL_URLS = ['./', './index.html', './manifest.json'];
 
 // JSON files — absolute path on known hosts, relative for local dev
@@ -15,6 +15,8 @@ const LANG_FILES = {
   ira: DATA_BASE + 'ira/quran_ira.json',
   far: DATA_BASE + 'far/quran_far.json',
   ind: DATA_BASE + 'ind/quran_ind.json',
+  zh:  DATA_BASE + 'zh/quran_zh.json',
+  es:  DATA_BASE + 'es/quran_es.json',
 };
 
 // Install — cache app shell only
