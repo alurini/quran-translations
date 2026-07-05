@@ -618,6 +618,9 @@ const BASE = (IS_GH || IS_ALAGR)
   ? '/data/'
   : '../data/';
 
+// Base path of the app (e.g. "/quran/" or "/app/") — strips trailing surah number if any
+const APP_BASE = location.pathname.replace(/\/\d+\/?$/, '').replace(/\/?$/, '/');
+
 const LANGS = {
   ur:  { name:'Urdu',       native:'اردو',      rtl:true,  file:BASE+'ur/quran_ur.json' },
   bal: { name:'Balochi',    native:'بلوچی',     rtl:true,  file:BASE+'bal/quran_bal.json' },
@@ -770,6 +773,12 @@ async function init() {
   buildSurahList();
   updateCachedList();
   updateLayout();
+
+  // Auto-open surah from URL (e.g. /quran/5 or /app/114)
+  const urlSurah = parseInt(location.pathname.replace(APP_BASE, ''));
+  if (urlSurah >= 1 && urlSurah <= 114 && surahMap[urlSurah]) {
+    openSurah(urlSurah, false);
+  }
 }
 
 // ── Load ──────────────────────────────────────────────────────────────
@@ -842,7 +851,13 @@ function renderCards(s, arTexts) {
   const svs = surahMap[s] || [];
   const bism = (s !== 9 && s !== 1) ? `<div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>` : '';
   return bism + svs.map(v => {
-    const arText = arTexts ? arTexts[v.ayah] : null;
+    let arText = arTexts ? arTexts[v.ayah] : null;
+    // Strip basmala from verse 1 — it's already shown as the header above
+    if (arText && v.ayah === 1 && s !== 1 && s !== 9) {
+      // Skip past بسم الله الرحمن الرحيم — find الرحيم and take everything after it
+      const m = arText.match(/[ر][َ-ْ]*[ح][َ-ْ]*[ي][َ-ْ]*[م][َ-ْ]*\s*([\s\S]+)$/);
+      if (m && arText.indexOf(m[0]) < 60) arText = m[1].trimStart();
+    }
     const arBlock = arText
       ? `<div class="ayah-ar">${esc(arText)}</div>`
       : `<div class="ayah-ar" style="color:var(--text-3);font-size:.8rem">جاري تحميل النص العربي...</div>`;
@@ -863,7 +878,7 @@ function renderCards(s, arTexts) {
 }
 
 // ── Ayah View ─────────────────────────────────────────────────────────
-async function openSurah(s) {
+async function openSurah(s, pushUrl = true) {
   curSurah = s;
   const svs = surahMap[s] || [];
   document.getElementById('pageTitle').textContent = `${SURAH_AR[s-1]} · ${s}`;
@@ -871,6 +886,12 @@ async function openSurah(s) {
   document.getElementById('btnPrev').disabled = allSurahs.indexOf(s) <= 0;
   document.getElementById('btnNext').disabled = allSurahs.indexOf(s) >= allSurahs.length-1;
   document.getElementById('homeBtn').style.display = 'flex';
+
+  // Update URL, page title, and meta description for SEO
+  if (pushUrl) history.pushState({surah: s}, '', APP_BASE + s);
+  document.title = `سورة ${SURAH_AR[s-1]} (${SURAH_EN[s-1]}) — القرآن الكريم`;
+  document.querySelector('meta[name="description"]')
+    ?.setAttribute('content', `سورة ${SURAH_AR[s-1]} — ${SURAH_EN[s-1]} — ترجمات القرآن الكريم بلغات متعددة`);
 
   // Render immediately with cached Arabic (or placeholder)
   document.getElementById('ayahList').innerHTML = renderCards(s, arCache[s] || null);
@@ -893,11 +914,19 @@ function copyAyah(n, btn) {
 }
 function prevSurah() { const i=allSurahs.indexOf(curSurah); if(i>0) openSurah(allSurahs[i-1]); }
 function nextSurah() { const i=allSurahs.indexOf(curSurah); if(i!==-1 && i<allSurahs.length-1) openSurah(allSurahs[i+1]); }
-function goHome() {
+function goHome(pushUrl = true) {
   document.getElementById('homeBtn').style.display = 'none';
   document.getElementById('pageTitle').textContent = 'القرآن الكريم';
+  document.title = 'القرآن الكريم — ترجمات بلغات متعددة';
+  if (pushUrl) history.pushState({}, '', APP_BASE);
   showView('home');
 }
+
+window.addEventListener('popstate', e => {
+  const s = e.state?.surah || parseInt(location.pathname.replace(APP_BASE, ''));
+  if (s >= 1 && s <= 114 && surahMap[s]) openSurah(s, false);
+  else goHome(false);
+});
 
 // ── Search ────────────────────────────────────────────────────────────
 let searchTimer;
