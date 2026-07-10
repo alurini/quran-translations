@@ -645,6 +645,7 @@ const LANGS = {
   en:  { name:'English',   native:'English',   rtl:false, file:BASE+'en/quran_en.json' },
   hi:  { name:'Hindi',     native:'हिन्दी',      rtl:false, file:BASE+'hi/quran_hi.json' },
   de:  { name:'German',    native:'Deutsch',    rtl:false, file:BASE+'de/quran_de.json' },
+  ku:  { name:'Kurdish',   native:'کوردی',      rtl:true,  file:BASE+'ku/quran_ku.json' },
 };
 
 // ── UI Strings per language ───────────────────────────────────────────
@@ -658,6 +659,7 @@ const UI = {
   en:  { install:'Install App', installSub:'Works offline after installation', installBtn:'Install', offline:'Offline — loaded from cache', search:'Search surah...', searchAyah:'Search in verses...' },
   hi:  { install:'ऐप इंस्टॉल करें', installSub:'इंस्टॉल के बाद बिना इंटरनेट काम करता है', installBtn:'इंस्टॉल', offline:'ऑफलाइन — कैश से', search:'सूरह खोजें...', searchAyah:'आयतों में खोजें...' },
   de:  { install:'App installieren', installSub:'Funktioniert nach der Installation offline', installBtn:'Installieren', offline:'Offline — aus dem Cache', search:'Sure suchen...', searchAyah:'In Versen suchen...' },
+  ku:  { install:'ئەپەکە دابەزێنە', installSub:'دوای دابەزاندن بێ ئینتەرنێت کار دەکات', installBtn:'دابەزاندن', offline:'ئۆفلاین — لە کاش', search:'بەدوای سورەتدا بگەڕێ...', searchAyah:'لە ئایەتەکاندا بگەڕێ...' },
 };
 const UI_DEFAULT = { install:'ثبّت التطبيق', installSub:'يعمل بدون إنترنت بعد التثبيت', installBtn:'تثبيت', offline:'غير متصل — يعمل من الذاكرة', search:'ابحث عن سورة...', searchAyah:'ابحث في الآيات...' };
 function t(key) { return (UI[curLang]||UI_DEFAULT)[key] || UI_DEFAULT[key]; }
