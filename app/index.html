@@ -151,6 +151,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
 .lang-chip.sel .lang-chip-nat{color:var(--accent)}
 .lang-chip.sel .lang-chip-en{color:var(--accent-mid)}
 
+/* ── Semantic toggle ── */
+.search-mode-bar{display:flex;gap:6px;padding:0 12px 8px;align-items:center}
+.mode-btn{flex:1;padding:8px;border-radius:30px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-2);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s}
+.mode-btn.active{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.sem-status{font-size:.7rem;color:var(--text-3);text-align:center;padding:4px 12px 8px;min-height:20px}
+.sem-status.loading{color:var(--accent)}
+
 /* ── Search input ── */
 .search-wrap{padding:10px 12px;position:sticky;top:0;background:var(--bg);z-index:10;transition:background .25s}
 .search-inp-wrap{position:relative}
@@ -490,6 +497,11 @@ mark{
         <input class="search-inp" id="searchInp" placeholder="ابحث في الآيات..." oninput="schedSearch(this.value)" autocomplete="off" dir="auto">
       </div>
     </div>
+    <div class="search-mode-bar">
+      <button class="mode-btn active" id="modeText" onclick="setSearchMode('text')">بحث نصي</button>
+      <button class="mode-btn" id="modeSem" onclick="setSearchMode('semantic')">بحث ذكي ✨</button>
+    </div>
+    <div class="sem-status" id="semStatus"></div>
     <div class="search-results" id="searchRes">
       <div class="empty">اكتب كلمة للبحث في الآيات</div>
     </div>
@@ -630,6 +642,9 @@ const LANGS = {
   ind: { name:'Indonesian', native:'Indonesia', rtl:false, file:BASE+'ind/quran_ind.json' },
   zh:  { name:'Chinese',    native:'中文',       rtl:false, file:BASE+'zh/quran_zh.json' },
   es:  { name:'Spanish',    native:'Español',   rtl:false, file:BASE+'es/quran_es.json' },
+  en:  { name:'English',   native:'English',   rtl:false, file:BASE+'en/quran_en.json' },
+  hi:  { name:'Hindi',     native:'हिन्दी',      rtl:false, file:BASE+'hi/quran_hi.json' },
+  de:  { name:'German',    native:'Deutsch',    rtl:false, file:BASE+'de/quran_de.json' },
 };
 
 // ── UI Strings per language ───────────────────────────────────────────
@@ -640,6 +655,9 @@ const UI = {
   ira: { install:'I-install ang app', installSub:'Gumagana nang walang internet', installBtn:'I-install', offline:'Offline — mula sa cache', search:'Maghanap ng surah...', searchAyah:'Maghanap sa mga talata...' },
   lez: { install:'Приложение установить', installSub:'Интернетсуз кIвалахзава', installBtn:'Установить', offline:'Офлайн — кешдай', search:'Суре жугъун...', searchAyah:'Аяте жугъун...' },
   ind: { install:'Pasang aplikasi', installSub:'Bisa dipakai tanpa internet', installBtn:'Pasang', offline:'Offline — dari cache', search:'Cari surah...', searchAyah:'Cari dalam ayat...' },
+  en:  { install:'Install App', installSub:'Works offline after installation', installBtn:'Install', offline:'Offline — loaded from cache', search:'Search surah...', searchAyah:'Search in verses...' },
+  hi:  { install:'ऐप इंस्टॉल करें', installSub:'इंस्टॉल के बाद बिना इंटरनेट काम करता है', installBtn:'इंस्टॉल', offline:'ऑफलाइन — कैश से', search:'सूरह खोजें...', searchAyah:'आयतों में खोजें...' },
+  de:  { install:'App installieren', installSub:'Funktioniert nach der Installation offline', installBtn:'Installieren', offline:'Offline — aus dem Cache', search:'Sure suchen...', searchAyah:'In Versen suchen...' },
 };
 const UI_DEFAULT = { install:'ثبّت التطبيق', installSub:'يعمل بدون إنترنت بعد التثبيت', installBtn:'تثبيت', offline:'غير متصل — يعمل من الذاكرة', search:'ابحث عن سورة...', searchAyah:'ابحث في الآيات...' };
 function t(key) { return (UI[curLang]||UI_DEFAULT)[key] || UI_DEFAULT[key]; }
@@ -929,9 +947,91 @@ window.addEventListener('popstate', e => {
 });
 
 // ── Search ────────────────────────────────────────────────────────────
+const SB_URL  = 'https://toevsepreulghdgyhqfq.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvZXZzZXByZXVsZ2hkZ3locWZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNjg0ODksImV4cCI6MjA5ODg0NDQ4OX0.a8CuSt2aj7DfnZMmIHwcuicmenYgvmKS8nkWS8_Qey0';
+
+let searchMode = 'text';
+let semModel = null, semLoading = false;
+
+function setSearchMode(mode) {
+  searchMode = mode;
+  document.getElementById('modeText').classList.toggle('active', mode === 'text');
+  document.getElementById('modeSem').classList.toggle('active', mode === 'semantic');
+  const q = document.getElementById('searchInp').value;
+  if (mode === 'semantic' && !semModel && !semLoading) loadSemModel();
+  if (q.trim()) schedSearch(q);
+}
+
+async function loadSemModel() {
+  semLoading = true;
+  const st = document.getElementById('semStatus');
+  st.textContent = 'جاري تحميل نموذج الذكاء الاصطناعي... (~120MB، مرة واحدة فقط)';
+  st.className = 'sem-status loading';
+  try {
+    const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js');
+    env.allowLocalModels = false;
+    semModel = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', {
+      progress_callback: p => {
+        if (p.status === 'progress' && p.total)
+          st.textContent = `تحميل النموذج... ${Math.round(p.loaded/p.total*100)}%`;
+      }
+    });
+    st.textContent = 'النموذج جاهز ✓';
+    st.className = 'sem-status';
+    setTimeout(() => { st.textContent = ''; }, 2000);
+    const q = document.getElementById('searchInp').value;
+    if (q.trim()) schedSearch(q);
+  } catch(e) {
+    st.textContent = 'فشل تحميل النموذج';
+    st.className = 'sem-status';
+  }
+  semLoading = false;
+}
+
+async function embedText(text) {
+  const out = await semModel(text, { pooling: 'mean', normalize: true });
+  return Array.from(out.data);
+}
+
+async function semanticSearch(q) {
+  const el = document.getElementById('searchRes');
+  const st = document.getElementById('semStatus');
+  if (!semModel) {
+    el.innerHTML = '<div class="empty">جاري تحميل النموذج...</div>';
+    return;
+  }
+  el.innerHTML = '<div class="empty">جاري البحث...</div>';
+  try {
+    const vector = await embedText(q);
+    const langCode = curLang === 'ur' ? 'ur' : curLang === 'bal' ? 'bal' : curLang === 'lez' ? 'lez'
+      : curLang === 'ira' ? 'ira' : curLang === 'far' ? 'far' : curLang === 'ind' ? 'ind'
+      : curLang === 'zh' ? 'zh' : curLang === 'es' ? 'es' : 'ar';
+    const fn = 'search_verses_lang';
+    const resp = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
+      method: 'POST',
+      headers: { 'apikey': SB_ANON, 'Authorization': `Bearer ${SB_ANON}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query_embedding: vector, match_count: 10, filter_lang: langCode })
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    const rows = await resp.json();
+    if (!rows.length) { el.innerHTML = '<div class="empty">لا نتائج</div>'; return; }
+    const rtl = LANGS[curLang]?.rtl ?? true;
+    el.innerHTML = rows.map(r => {
+      const score = Math.round((1 - r.distance) * 100);
+      return `<div class="s-result" onclick="jumpToAyah(${r.surah},${r.ayah})">
+        <div class="s-result-meta">سورة ${r.surah} · ${SURAH_AR[r.surah-1]} · آية ${r.ayah} <span style="color:var(--accent);font-weight:700">${score}%</span></div>
+        <div class="s-result-text ${rtl?'rtl':'ltr'}">${esc(r.text).slice(0,250)}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty">خطأ: ${e.message}</div>`;
+  }
+}
+
 let searchTimer;
-function schedSearch(q) { clearTimeout(searchTimer); searchTimer = setTimeout(() => doSearch(q), 300); }
+function schedSearch(q) { clearTimeout(searchTimer); searchTimer = setTimeout(() => doSearch(q), 400); }
 function doSearch(q) {
+  if (searchMode === 'semantic') { semanticSearch(q); return; }
   const el = document.getElementById('searchRes');
   if (!q.trim()) { el.innerHTML = '<div class="empty">اكتب كلمة للبحث في الآيات</div>'; return; }
   const rtl = LANGS[curLang].rtl;
