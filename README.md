@@ -14,7 +14,7 @@ A fully offline-capable Progressive Web App built on this dataset — for minori
 
 - Works **offline** after first load (Service Worker + cache)
 - **Add to Home Screen** on Android & iOS — installs like a native app
-- 8 languages with automatic RTL/LTR detection
+- 10 languages with automatic RTL/LTR detection
 - Original Arabic text alongside every translation
 - Dark / Light mode · Adjustable font size · In-app search
 
@@ -46,6 +46,8 @@ A fully offline-capable Progressive Web App built on this dataset — for minori
 | Language | Language Code | Ayahs | Surahs | Validation |
 |---|---|---|---|---|
 | Arabic — Uthmani script (عربي) | `ar` | 6236 | 114 | ✅ Source: alquran.cloud |
+| English | `en` | 6236 | 114 | ✅ 100% verified |
+| German (Deutsch) | `de` | 6236 | 114 | ✅ 100% verified |
 | Chinese (中文) | `zh` | 6236 | 114 | ✅ 100% verified |
 | Spanish (Español) | `es` | 6236 | 114 | ✅ 100% verified |
 | Balochi (بلوچی) | `bal` | 6236 | 114 | ✅ 100% verified |
@@ -89,6 +91,10 @@ quran-translations/
 │   ├── ira/
 │   │   ├── quran_ira.json
 │   │   └── sha256.txt
+│   ├── en/
+│   │   └── quran_en.json
+│   ├── de/
+│   │   └── quran_de.json
 │   ├── ku/
 │   │   ├── quran_ku.json
 │   │   └── sha256.txt
@@ -262,4 +268,4 @@ The translation texts digitized in this project were originally published by the
 
 ## Tags
 
-`quran` `islam` `islamic-app` `quran-json` `quran-api` `quran-translations` `king-fahd-complex` `muslim` `urdu` `persian` `indonesian` `balochi` `kurdish` `lezgian` `maranao` `spanish` `chinese` `open-quran`
+`quran` `islam` `islamic-app` `quran-json` `quran-api` `quran-translations` `king-fahd-complex` `muslim` `urdu` `persian` `indonesian` `balochi` `kurdish` `lezgian` `maranao` `spanish` `chinese` `english` `german` `open-quran`
