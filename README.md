@@ -14,7 +14,7 @@ A fully offline-capable Progressive Web App built on this dataset — for minori
 
 - Works **offline** after first load (Service Worker + cache)
 - **Add to Home Screen** on Android & iOS — installs like a native app
-- 12 languages with automatic RTL/LTR detection
+- 13 languages with automatic RTL/LTR detection
 - Original Arabic text alongside every translation
 - Dark / Light mode · Adjustable font size · In-app search
 
@@ -57,6 +57,7 @@ A fully offline-capable Progressive Web App built on this dataset — for minori
 | Iranouniya / Maranao | `ira` | 6236 | 114 | ✅ 100% verified |
 | Kurdish Sorani (کوردی سۆرانی) | `ku` | 6236 | 114 | ✅ 100% verified |
 | Lezgian (Лезги) | `lez` | 6236 | 114 | ✅ 100% verified |
+| Turkish (Türkçe) | `tr` | 6236 | 114 | ✅ 100% verified |
 | Urdu (اردو) | `ur` | 6236 | 114 | ✅ 100% verified |
 
 ---
