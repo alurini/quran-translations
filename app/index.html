@@ -648,6 +648,7 @@ const LANGS = {
   ku:  { name:'Kurdish',   native:'کوردی',      rtl:true,  file:BASE+'ku/quran_ku.json' },
   tr:  { name:'Turkish',   native:'Türkçe',     rtl:false, file:BASE+'tr/quran_tr.json' },
   ky:  { name:'Kyrgyz',    native:'Кыргызча',   rtl:false, file:BASE+'ky/quran_ky.json' },
+  ja:  { name:'Japanese',  native:'日本語',      rtl:false, file:BASE+'ja/quran_ja.json' },
 };
 
 // ── UI Strings per language ───────────────────────────────────────────
@@ -664,6 +665,7 @@ const UI = {
   ku:  { install:'ئەپەکە دابەزێنە', installSub:'دوای دابەزاندن بێ ئینتەرنێت کار دەکات', installBtn:'دابەزاندن', offline:'ئۆفلاین — لە کاش', search:'بەدوای سورەتدا بگەڕێ...', searchAyah:'لە ئایەتەکاندا بگەڕێ...' },
   tr:  { install:'Uygulamayı Yükle', installSub:'Yükledikten sonra çevrimdışı çalışır', installBtn:'Yükle', offline:'Çevrimdışı — önbellekten', search:'Sure ara...', searchAyah:'Ayetlerde ara...' },
   ky:  { install:'Колдонмону орнот', installSub:'Орноткондон кийин интернетсиз иштейт', installBtn:'Орнот', offline:'Оффлайн — кэштен', search:'Сүрөнү издөө...', searchAyah:'Аяттардан издөө...' },
+  ja:  { install:'アプリをインストール', installSub:'インストール後はオフラインで使えます', installBtn:'インストール', offline:'オフライン — キャッシュから', search:'スーラを検索...', searchAyah:'アーヤを検索...' },
 };
 const UI_DEFAULT = { install:'ثبّت التطبيق', installSub:'يعمل بدون إنترنت بعد التثبيت', installBtn:'تثبيت', offline:'غير متصل — يعمل من الذاكرة', search:'ابحث عن سورة...', searchAyah:'ابحث في الآيات...' };
 function t(key) { return (UI[curLang]||UI_DEFAULT)[key] || UI_DEFAULT[key]; }
